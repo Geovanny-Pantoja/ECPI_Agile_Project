@@ -44,7 +44,7 @@ int main() {
 
     loadFromFile(incomes, &incomeCount, expenses, &expenseCount);
     mainLoop(incomes, expenses, &incomeCount, &expenseCount);    
-    exportToFile(incomes, incomeCount, expenses, expenseCount);
+    //exportToFile(incomes, incomeCount, expenses, expenseCount);
 
     printf("Exiting application. Goodbye.\n");
     return 0;
@@ -287,15 +287,123 @@ void displayExpenseSummary(Expense expenses[], int expenseCount) {
 }
 
 void exportToFile(Income incomes[], int incomeCount, Expense expenses[], int expenseCount) {
-    printf("[Stub] Export to File\n");
+    
+    //handle case if there are no transactions to write 
+    if (incomeCount == 0 && expenseCount ==0){
+    	printf("No transactions to write. CSV file not updated.\n");
+    	
+    	printf("Please press enter to continue.\n");
+        getchar();
+    	return;
+	}
+	
+	//open file or create if it does not exist 
+	FILE *file = fopen("transaction.csv", "w");
+	if (file == NULL){
+		perror("Error opening file");
+		return;
+	}
+	//Write headers
+	fprintf(file, "Type,Date,Description,Amount\n");
+	
+	//write income 
+	int i;
+	for(i = 0; i < incomeCount; i++){
+		fprintf(file, "Income,%s,%s,%.2f\n", incomes[i].date, incomes[i].description, incomes[i].amount);
+	}
+	
+	//write expenses
+	for(i = 0; i < expenseCount; i++){
+		fprintf(file, "Expense,%s,%s,%.2f\n", expenses[i].date, expenses[i].description, expenses[i].amount);
+	}
+	fclose(file);
+	if(incomeCount == 0){
+		printf("Expenses successfully written to transaction.csv.\nThere were no Income transactions to report.\n");
+	}
+	else if (expenseCount == 0){
+	    printf("Income successfully written to transaction.csv.\nThere were no Expense transactions to report.\n");
+	}
+	else {
+		printf("Data successfully written to transaction.csv\n");
+	}
+	
     printf("Please press enter to continue.\n");
     getchar();
 }
 
 void loadFromFile(Income incomes[], int *incomeCount, Expense expenses[], int *expenseCount) {
-    printf("[Stub] Load from File\n");
-    //printf("Please press enter to continue.\n");
-    //getchar();
+    
+    FILE *file = fopen("transaction.csv","r");
+    if (file == NULL) {
+        printf("No existing CSV file found. Starting with an empty record.\n");
+        return;  // Exit gracefully if no file exists
+    }
+
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), file);  // Skip header
+
+    int warningPrintedIncome = 0;  // Prevent repeated warnings for Income
+    int warningPrintedExpense = 0; // Prevent repeated warnings for Expense
+
+    while (fgets(buffer, sizeof(buffer), file)) {
+        char type[10], date[15], description[50];
+        float amount;
+
+        // Tokenize the CSV line
+        char *token = strtok(buffer, ",");
+        if (token == NULL) continue; // Skip invalid rows
+
+        strcpy(type, token);
+
+        token = strtok(NULL, ",");
+        if (token == NULL) continue;
+        strcpy(date, token);
+
+        token = strtok(NULL, ",");
+        if (token == NULL) continue;
+        strcpy(description, token);
+
+        token = strtok(NULL, ",");
+        if (token == NULL) continue;
+        amount = atof(token);  // Convert string to float
+
+        // Handle Income Records
+        if (strcmp(type, "Income") == 0) {
+            if (*incomeCount >= MAX_RECORDS) {
+                if (!warningPrintedIncome) {  // Print only once
+                    printf("Warning: Income records exceeded limit (%d). Some entries will be skipped.\n", MAX_RECORDS);
+                    warningPrintedIncome = 1;
+                }
+                continue;  // Skip extra records
+            }
+            strcpy(incomes[*incomeCount].date, date);
+            strncpy(incomes[*incomeCount].description, description, sizeof(incomes[*incomeCount].description) - 1);
+            incomes[*incomeCount].description[sizeof(incomes[*incomeCount].description) - 1] = '\0';
+            incomes[*incomeCount].amount = amount;
+            (*incomeCount)++; 
+        }
+
+        // Handle Expense Records
+        else if (strcmp(type, "Expense") == 0) {
+            if (*expenseCount >= MAX_RECORDS) {
+                if (!warningPrintedExpense) {  // Print only once
+                    printf("Warning: Expense records exceeded limit (%d). Some entries will be skipped.\n", MAX_RECORDS);
+                    warningPrintedExpense = 1;
+                }
+                continue;  // Skip extra records
+            }
+            strcpy(expenses[*expenseCount].date, date);
+            strncpy(expenses[*expenseCount].description, description, sizeof(expenses[*expenseCount].description) - 1);
+            expenses[*expenseCount].description[sizeof(expenses[*expenseCount].description) - 1] = '\0';
+            expenses[*expenseCount].amount = amount;
+            (*expenseCount)++; 
+        }
+    }
+
+    fclose(file);  // Close file properly
+    printf("CSV data successfully loaded!\n");
+    printf("Please enter to continue.");
+    getchar();
 }
 
 void clearScreen() {
