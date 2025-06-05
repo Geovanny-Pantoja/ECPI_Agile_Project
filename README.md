@@ -10,5 +10,7 @@ This project is written in C with the following functions:
 - Two functions that display the summary of income and expensed.
   - Total number of transactions
   - Total amount of income and expense transactions
+- Writes the information from the user to an excel file
+- Loads information from and excel file 
 
 
