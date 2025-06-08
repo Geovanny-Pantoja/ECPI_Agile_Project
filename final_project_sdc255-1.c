@@ -44,7 +44,7 @@ int main() {
 
     loadFromFile(incomes, &incomeCount, expenses, &expenseCount);
     mainLoop(incomes, expenses, &incomeCount, &expenseCount);    
-    //exportToFile(incomes, incomeCount, expenses, expenseCount);
+    exportToFile(incomes, incomeCount, expenses, expenseCount);
 
     printf("Exiting application. Goodbye.\n");
     return 0;
@@ -103,6 +103,8 @@ int menu() {
 int addIncome(Income incomes[], int count) {
     if (count >= MAX_RECORDS) {
         printf("Income list full. Cannot add more entries.\n");
+        printf("Press enter to continue.\n");    
+        getchar();
         return count;
     }
 
@@ -125,12 +127,30 @@ int addIncome(Income incomes[], int count) {
 		
    }
 
-    printf("Enter description: ");
-    fgets(incomes[count].description, MAX_DESC, stdin);
-    int len = strlen(incomes[count].description);
-    //get rid of \n..fgets includes \n
-	if (len > 0 && incomes[count].description[len - 1] == '\n') {
-        incomes[count].description[len - 1] = '\0';
+    while (1) {
+      printf("Enter description (max %d characters): ", MAX_DESC - 1);
+      fgets(incomes[count].description, MAX_DESC, stdin);
+
+      int len = strlen(incomes[count].description);
+
+      // If input too long (no newline), flush remaining chars and retry
+      if (len > 0 && incomes[count].description[len - 1] != '\n') {
+         flushInput();
+         printf("Input too long. Please enter up to %d characters.\n\n", MAX_DESC - 1);
+         continue; // back to start of while loop
+      }
+
+      // Remove trailing newline if it exists
+      if (len > 0 && incomes[count].description[len - 1] == '\n') {
+          incomes[count].description[len - 1] = '\0';
+      }
+      
+      if (strlen(incomes[count].description) == 0) {
+        printf("Description cannot be empty. Please try again.\n\n");
+        continue;
+    }
+
+      break; // valid input, exit loop
     }
 
     while (1){
@@ -157,6 +177,8 @@ int addIncome(Income incomes[], int count) {
 int addExpense(Expense expenses[], int count) {
     if (count >= MAX_RECORDS) {
         printf("Expense list full. Cannot add more entries.\n");
+        printf("Press enter to continue.\n");    
+        getchar();
         return count;
     }
 
@@ -178,12 +200,30 @@ int addExpense(Expense expenses[], int count) {
 		
    }   
     
-    printf("Enter description: ");
-    fgets(expenses[count].description, MAX_DESC, stdin);
-    int len = strlen(expenses[count].description);
-    //get rid of \n..fgets includes \n
-	if (len > 0 && expenses[count].description[len - 1] == '\n') {
-        expenses[count].description[len - 1] = '\0';
+    while (1) {
+      printf("Enter description (max %d characters): ", MAX_DESC - 1);
+      fgets(expenses[count].description, MAX_DESC, stdin);
+
+      int len = strlen(expenses[count].description);
+
+      // If input too long (no newline), flush remaining chars and retry
+      if (len > 0 && expenses[count].description[len - 1] != '\n') {
+         flushInput();
+         printf("Input too long. Please enter up to %d characters.\n\n", MAX_DESC - 1);
+         continue; // back to start of while loop
+      }
+
+      // Remove trailing newline if it exists
+      if (len > 0 && expenses[count].description[len - 1] == '\n') {
+          expenses[count].description[len - 1] = '\0';
+      }
+      
+      if (strlen(expenses[count].description) == 0) {
+        printf("Description cannot be empty. Please try again.\n\n");
+        continue;
+    }
+
+      break; // valid input, exit loop
     }
 
     while (1){
