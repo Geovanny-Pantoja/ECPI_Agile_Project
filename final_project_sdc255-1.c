@@ -249,7 +249,9 @@ int addExpense(Expense expenses[], int count) {
 
 void displayTransactions(Income incomes[], int incomeCount, Expense expenses[], int expenseCount) {
     if (incomeCount == 0 && expenseCount == 0){
-    	printf("No transaction to display.\n");
+    	printf("No transactions to display.\n");
+    	printf("Please press enter to continue.\n");
+    getchar();
     	return;
 	}
 	
