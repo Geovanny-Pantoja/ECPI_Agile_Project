@@ -225,6 +225,26 @@ int addExpense(Expense expenses[], int count) {
 
       break; // valid input, exit loop
     }
+    
+     // Get Category
+    while (1) {
+        printf("Enter category (max %d characters): ", MAX_CAT - 1);
+        fgets(expenses[count].category, MAX_CAT, stdin);
+        int len = strlen(expenses[count].category);
+        if (len > 0 && expenses[count].category[len - 1] != '\n') {
+            flushInput();
+            printf("Input too long. Please enter up to %d characters.\n\n", MAX_CAT - 1);
+            continue;
+        }
+        if (len > 0 && expenses[count].category[len - 1] == '\n') {
+            expenses[count].category[len - 1] = '\0';
+        }
+        if (strlen(expenses[count].category) == 0) {
+            printf("Category cannot be empty. Please try again.\n\n");
+            continue;
+        }
+        break;
+    }
 
     while (1){
 	    printf("Enter amount: ");
@@ -276,6 +296,7 @@ void displayTransactions(Income incomes[], int incomeCount, Expense expenses[], 
 			printf("Expense #%d:\n", i + 1);
 			printf("Date: %s\n", expenses[i].date);
 			printf("Description: %s\n", expenses[i].description);
+			printf("Category: %s\n", expenses[i].category);
 			printf("Amount: $%.2f\n", expenses[i].amount);
 			printf("---------------------------\n");
 		}
@@ -346,7 +367,7 @@ void exportToFile(Income incomes[], int incomeCount, Expense expenses[], int exp
 		return;
 	}
 	//Write headers
-	fprintf(file, "Type,Date,Description,Amount\n");
+	fprintf(file, "Type,Date,Description,Amount,Category\n");
 	
 	//write income 
 	int i;
@@ -354,10 +375,11 @@ void exportToFile(Income incomes[], int incomeCount, Expense expenses[], int exp
 		fprintf(file, "Income,%s,%s,%.2f\n", incomes[i].date, incomes[i].description, incomes[i].amount);
 	}
 	
-	//write expenses
-	for(i = 0; i < expenseCount; i++){
-		fprintf(file, "Expense,%s,%s,%.2f\n", expenses[i].date, expenses[i].description, expenses[i].amount);
-	}
+	// Write expenses (Includes Category)
+	
+    for (i = 0; i < expenseCount; i++) {
+        fprintf(file, "Expense,%s,%s,%.2f,%s\n", expenses[i].date, expenses[i].description, expenses[i].amount, expenses[i].category);
+    }
 	fclose(file);
 	if(incomeCount == 0){
 		printf("Expenses successfully written to transaction.csv.\nThere were no Income transactions to report.\n");
@@ -378,6 +400,8 @@ void loadFromFile(Income incomes[], int *incomeCount, Expense expenses[], int *e
     FILE *file = fopen("transaction.csv","r");
     if (file == NULL) {
         printf("No existing CSV file found. Starting with an empty record.\n");
+        printf("Please press enter to continue.\n");
+        getchar();
         return;  // Exit gracefully if no file exists
     }
 
@@ -388,7 +412,13 @@ void loadFromFile(Income incomes[], int *incomeCount, Expense expenses[], int *e
     int warningPrintedExpense = 0; // Prevent repeated warnings for Expense
 
     while (fgets(buffer, sizeof(buffer), file)) {
-        char type[10], date[15], description[50];
+    	// Remove trailing newline from buffer
+        int len = strlen(buffer);
+        if (len > 0 && buffer[len - 1] == '\n') {
+            buffer[len - 1] = '\0';
+        }
+    	
+        char type[10], date[MAX_DATE], description[MAX_DESC], category[MAX_CAT];
         float amount;
 
         // Tokenize the CSV line
@@ -408,6 +438,19 @@ void loadFromFile(Income incomes[], int *incomeCount, Expense expenses[], int *e
         token = strtok(NULL, ",");
         if (token == NULL) continue;
         amount = atof(token);  // Convert string to float
+        
+        token = strtok(NULL, ",");
+        if (token != NULL) {
+        strcpy(category, token);
+    
+        // Remove trailing newline if present
+        int len = strlen(category);
+        if (len > 0 && category[len - 1] == '\n') {
+          category[len - 1] = '\0';
+          }
+        }
+
+		
 
         // Handle Income Records
         if (strcmp(type, "Income") == 0) {
@@ -438,6 +481,8 @@ void loadFromFile(Income incomes[], int *incomeCount, Expense expenses[], int *e
             strncpy(expenses[*expenseCount].description, description, sizeof(expenses[*expenseCount].description) - 1);
             expenses[*expenseCount].description[sizeof(expenses[*expenseCount].description) - 1] = '\0';
             expenses[*expenseCount].amount = amount;
+            strncpy(expenses[*expenseCount].category, category, sizeof(expenses[*expenseCount].category) - 1);
+            expenses[*expenseCount].category[sizeof(expenses[*expenseCount].category) - 1] = '\0';  // Ensure null termination
             (*expenseCount)++; 
         }
     }

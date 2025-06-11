@@ -1,7 +1,4 @@
-Type,Date,Description,Amount
-Income,2025-01-31,Jan Income,2245.45
-Income,2025-02-28,Feb Income,2544.45
-Income,2025-03-31,March Income,2345.45
-Expense,2025-01-31,Water Bill,150.14
-Expense,2025-03-31,Electricity Bill,4577.00
-Expense,2025-04-01,Power Bill,300.00
+Type,Date,Description,Amount,Category
+Income,2024-01-23,Water,2330.00
+Expense,2025-01-02,Power,2344.00,Utilities
+Expense,2025-01-02,Electricity,122.00,Utilities
